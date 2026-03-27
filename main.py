@@ -28,15 +28,13 @@ def parsing():
     return data
 
 
-def get_function_name(data):
+def get_function_name(data, usr_prompt):
     pre_prompt = "<|im_start|>system\n" \
                  "I give you acess to some function choose the correct one\n" \
                  "return only the function name that you have to use then finish your answer\n" \
                  "the list of function:\n" \
                  f"{data}"\
                  "<|im_end|>" \
-
-    usr_prompt = "<|im_start|>greets balthazar \n  \n<|im_end|>"
 
     assistant_prompt = "<|im_start|>assistant\n" \
                        "function used:"
@@ -55,19 +53,17 @@ def get_function_name(data):
     return (ft_name.split("\n")[0])
 
 
-def get_function_args(data, function_name):
+def get_function_args(parameters, function_name, usr_prompt):
     pre_prompt = "<|im_start|>system\n" \
-                 "I give you a function name and it's arguments," \
-                 " you have to choose the correct arguments" \
-                 "depending the on the given function\n" \
+                 "choose the correct parameter(s) in the user prompt" \
                  "Here is the function name\n" \
                  f"{function_name}\n"\
+                 "Here is the functions prototype parameters\n" \
+                 f"{parameters.keys()}\n" \
                  "<|im_end|>"
 
-    usr_prompt = "<|im_start|>greets balthazar \n  \n<|im_end|>"
-
     assistant_prompt = "<|im_start|>assistant\n" \
-                       "choosen paramaters:"
+                       f"choosen {parameters}:"
     prompt = pre_prompt + usr_prompt + assistant_prompt
     my_ai = Small_LLM_Model()
 
@@ -79,7 +75,7 @@ def get_function_args(data, function_name):
         encoder_prompt.append(next_token_id)
         copy_prompt.append(next_token_id)
     full_text = my_ai.decode(copy_prompt)
-    return (full_text.split("\n")[0])
+    return (full_text)
 
 
 def main():
@@ -88,11 +84,21 @@ def main():
     except Exception as e:
         print(f"Caught Error: {e}")
         return
-    # to do global user prompt
-    name = "function_name :" + get_function_name(data)
-    args = "args :" + get_function_args(data, name)
-    print(name)
-    print(args)
+    usr_prompt = "<|im_start|> add 1 and 42 \n \n<|im_end|>"
+    name = get_function_name(data, usr_prompt)
+    i = 0
+    for func in data:
+        if (func.name == name.strip(" ")):
+            break
+        i += 1
+    json_name = "function_name :" + name
+    args = get_function_args(
+                             data[i].parameters,
+                             name,
+                             usr_prompt
+                             )
+    print(json_name)
+    print("args :" + args)
 
 
 if __name__ == "__main__":
