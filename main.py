@@ -59,7 +59,7 @@ def get_function_args(parameters, function_name, usr_prompt):
                  "Here is the function name\n" \
                  f"{function_name}\n"\
                  "Here is the functions prototype parameters\n" \
-                 f"{parameters.keys()}\n" \
+                 f"{parameters}\n" \
                  "<|im_end|>"
 
     assistant_prompt = "<|im_start|>assistant\n" \
@@ -84,7 +84,7 @@ def main():
     except Exception as e:
         print(f"Caught Error: {e}")
         return
-    usr_prompt = "<|im_start|> add 1 and 42 \n \n<|im_end|>"
+    usr_prompt = "<|im_start|> reverse this string 'hello there' \n \n<|im_end|>"
     name = get_function_name(data, usr_prompt)
     i = 0
     for func in data:
@@ -92,13 +92,16 @@ def main():
             break
         i += 1
     json_name = "function_name :" + name
-    args = get_function_args(
-                             data[i].parameters,
+    full = ""
+    for elt in data[i].parameters:
+        full += get_function_args(
+                             elt,
                              name,
                              usr_prompt
                              )
+        full += "\n"
     print(json_name)
-    print("args :" + args)
+    print("args :" + full)
 
 
 if __name__ == "__main__":
