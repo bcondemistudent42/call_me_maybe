@@ -60,12 +60,12 @@ def get_function_args(parameters, function_name, description, usr_prompt):
                  f"{function_name}\n"\
                  "Here is the functions prototype parameter\n" \
                  f"{parameters}\n" \
-                "Here is the function description \n" \
-                f"{description}" \
                  "<|im_end|>"
+                # "Here is the function description \n" \
+                # f"{description}" \
 
     assistant_prompt = "<|im_start|>assistant\n" \
-                       f"choosen {parameters}:"
+                       f"{parameters}:"
     prompt = pre_prompt + usr_prompt + assistant_prompt
     my_ai = Small_LLM_Model()
 
@@ -86,7 +86,8 @@ def main():
     except Exception as e:
         print(f"Caught Error: {e}")
         return
-    usr_prompt = "<|im_start|> what is the sqrt of 16 \n \n<|im_end|>"
+    # usr_prompt = "<|im_start|> what is the sum of 12 and 16 \n \n<|im_end|>"
+    usr_prompt =  "<|im_start|> Substitute the word 'cat' with 'dog' in 'The cat sat on the mat with another cat' <|im_end|>"
     name = get_function_name(data, usr_prompt)
     i = 0
     for func in data:
@@ -95,9 +96,9 @@ def main():
         i += 1
     json_name = "function_name :" + name
     full = ""
-    print("keys == ", data[i].parameters.keys())
-    print()
-    print("values == ", data[i].parameters.values())
+    # print("keys == ", data[i].parameters.keys())
+    # print()
+    # print("values == ", data[i].parameters.values())
     for elt in data[i].parameters.keys():
         full += get_function_args(
                              elt,
@@ -105,9 +106,10 @@ def main():
                              data[i].description,
                              usr_prompt
                              )
-        full += "\n"
     print(json_name)
-    print("args :" + full)
+    rslt = [x.strip("") for x in full.split("</think>")]
+
+    print(rslt)
 
 
 if __name__ == "__main__":
