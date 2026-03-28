@@ -53,13 +53,15 @@ def get_function_name(data, usr_prompt):
     return (ft_name.split("\n")[0])
 
 
-def get_function_args(parameters, function_name, usr_prompt):
+def get_function_args(parameters, function_name, description, usr_prompt):
     pre_prompt = "<|im_start|>system\n" \
                  "choose the correct parameter(s) in the user prompt" \
                  "Here is the function name\n" \
                  f"{function_name}\n"\
-                 "Here is the functions prototype parameters\n" \
+                 "Here is the functions prototype parameter\n" \
                  f"{parameters}\n" \
+                "Here is the function description \n" \
+                f"{description}" \
                  "<|im_end|>"
 
     assistant_prompt = "<|im_start|>assistant\n" \
@@ -84,7 +86,7 @@ def main():
     except Exception as e:
         print(f"Caught Error: {e}")
         return
-    usr_prompt = "<|im_start|> reverse this string 'hello there' \n \n<|im_end|>"
+    usr_prompt = "<|im_start|> what is the sqrt of 16 \n \n<|im_end|>"
     name = get_function_name(data, usr_prompt)
     i = 0
     for func in data:
@@ -93,10 +95,14 @@ def main():
         i += 1
     json_name = "function_name :" + name
     full = ""
-    for elt in data[i].parameters:
+    print("keys == ", data[i].parameters.keys())
+    print()
+    print("values == ", data[i].parameters.values())
+    for elt in data[i].parameters.keys():
         full += get_function_args(
                              elt,
                              name,
+                             data[i].description,
                              usr_prompt
                              )
         full += "\n"
