@@ -57,7 +57,7 @@ def get_function_args(my_ai, function_name, my_param, usr_prompt):
     pre_prompt = "<|im_start|>system\n" \
                  f"Depending on the function name : {function_name}, " \
                  f"and asked parameter : {my_param} you must return the " \
-                 "only corresponding parameter in the user prompt" \
+                 " corresponding parameter in the user prompt" \
                  "Here is the user prompt \n" \
                  f"{usr_prompt}" \
                  "<|im_end|>"
@@ -68,15 +68,15 @@ def get_function_args(my_ai, function_name, my_param, usr_prompt):
     copy_prompt = []
 
     i = 0
-    while "</think>" not in my_ai.decode(copy_prompt) and i < 30:
-        print("test args")
+    while "</think>" not in my_ai.decode(copy_prompt) and i < 60:
+        print("finding args")
         logits = my_ai.get_logits_from_input_ids(encoder_prompt)
         next_token_id = logits.index(max(logits))
         encoder_prompt.append(next_token_id)
         copy_prompt.append(next_token_id)
         i += 1
     print("\n ===== \n Trouver un argument \n ===== \n")
-    if i == 30:
+    if i == 60:
         print("\n ===== \n Atteint le max \n ===== \n")
     arg_name = my_ai.decode(copy_prompt)
     # carreful if AI cant found result
@@ -90,8 +90,13 @@ def main():
     except Exception as e:
         print(f"Caught Error: {e}")
         return
-    # usr_prompt = "<|im_start|> i want you to add 12 and 16 \n \n<|im_end|>"
-    usr_prompt =  "<|im_start|> Substitute the word 'cat' with 'dog' in 'The cat sat on the mat with another cat' <|im_end|>"
+
+    # usr_prompt = "<|im_start|> i want you to add 12 and 16 \n<|im_end|>"
+    # usr_prompt =  "<|im_start|> Substitute the word 'cat' with 'dog' in 'The cat sat on the mat with another cat' <|im_end|>"
+    usr_prompt = "<|im_start|> greets bcondemi \n <|im_end|>"
+    # usr_prompt = "<|im_start|> what is the sqrt of 42 \n <|im_end|>"
+    # usr_prompt = "<|im_start|> reverse the string 'Hello there' \n <|im_end|>"
+
     name = get_function_name(my_ai, data, usr_prompt)
     i = 0
     for func in data:
@@ -107,3 +112,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# Issue function : fn_greet
