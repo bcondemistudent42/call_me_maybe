@@ -55,11 +55,10 @@ def get_function_name(my_ai, data, usr_prompt):
 
 def get_function_args(my_ai, function_name, my_param, usr_prompt):
     pre_prompt = "<|im_start|>system\n" \
-                 f"Depending on the function name : {function_name}, " \
-                 f"and asked parameter : {my_param} you must return the " \
-                 " corresponding parameter in the user prompt" \
-                 "Here is the user prompt \n" \
-                 f"{usr_prompt}" \
+                 f"function name : {function_name}\n" \
+                 f"parameter : {my_param}\n" \
+                 f"prompt : {usr_prompt}\n" \
+                 "Extract parameter from input" \
                  "<|im_end|>"
     assistant_prompt = "<|im_start|>assistant\n" \
                        f"parameter {my_param}:"
@@ -75,7 +74,7 @@ def get_function_args(my_ai, function_name, my_param, usr_prompt):
         encoder_prompt.append(next_token_id)
         copy_prompt.append(next_token_id)
         i += 1
-    print("\n ===== \n Trouver un argument \n ===== \n")
+    print("\n ===== \n Found an argument \n ===== \n")
     if i == 60:
         print("\n ===== \n Atteint le max \n ===== \n")
     arg_name = my_ai.decode(copy_prompt)
@@ -91,12 +90,13 @@ def main():
         print(f"Caught Error: {e}")
         return
 
-    # usr_prompt = "<|im_start|> i want you to add 12 and 16 \n<|im_end|>"
-    # usr_prompt =  "<|im_start|> Substitute the word 'cat' with 'dog' in 'The cat sat on the mat with another cat' <|im_end|>"
-    usr_prompt = "<|im_start|> greets bcondemi \n <|im_end|>"
     # usr_prompt = "<|im_start|> what is the sqrt of 42 \n <|im_end|>"
-    # usr_prompt = "<|im_start|> reverse the string 'Hello there' \n <|im_end|>"
+    # usr_prompt = "<|im_start|> i want you to add 12 and 16 \n<|im_end|>" 
+    # usr_prompt = "<|im_start|> greets bcondemi \n <|im_end|>"
+    # usr_prompt =  "<|im_start|> Substitute the word 'cat' with 'dog' in 'The cat sat on the mat with another cat' <|im_end|>"
 
+    # issues
+    usr_prompt = "<|im_start|> reverse the string 'Hello there' \n <|im_end|>"
     name = get_function_name(my_ai, data, usr_prompt)
     i = 0
     for func in data:
@@ -104,8 +104,8 @@ def main():
             break
         i += 1
     args_lst = []
-    for param in data[i].parameters:
-        args_lst.append(get_function_args(my_ai, name, param, usr_prompt))
+    # for param in data[i].parameters:
+    args_lst.append(get_function_args(my_ai, name, list(data[i].parameters), usr_prompt))
     print(name)
     print(args_lst)
 
