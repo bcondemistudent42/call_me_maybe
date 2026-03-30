@@ -28,88 +28,81 @@ def parsing():
     return data
 
 
-def get_function_name(data, usr_prompt):
+def get_function_name(my_ai, data, usr_prompt):
     pre_prompt = "<|im_start|>system\n" \
                  "I give you acess to some function choose the correct one\n" \
                  "return only the function name that you have to use then finish your answer\n" \
                  "the list of function:\n" \
-                 f"{data}"\
+                 f"{data} \n"\
                  "<|im_end|>" \
 
     assistant_prompt = "<|im_start|>assistant\n" \
                        "function used:"
     prompt = pre_prompt + usr_prompt + assistant_prompt
-    my_ai = Small_LLM_Model()
-
     encoder_prompt = my_ai.encode(prompt)[0].tolist()
     copy_prompt = []
 
     while "</think>" not in my_ai.decode(copy_prompt):
+        print("test function_name")
         logits = my_ai.get_logits_from_input_ids(encoder_prompt)
         next_token_id = logits.index(max(logits))
         encoder_prompt.append(next_token_id)
         copy_prompt.append(next_token_id)
     ft_name = my_ai.decode(copy_prompt)
+    # carreful if AI cant found result
     return (ft_name.split("\n")[0])
 
 
-def get_function_args(parameters, function_name, description, usr_prompt):
+def get_function_args(my_ai, function_name, my_param, usr_prompt):
     pre_prompt = "<|im_start|>system\n" \
-                 "choose the correct parameter(s) in the user prompt" \
-                 "Here is the function name\n" \
-                 f"{function_name}\n"\
-                 "Here is the functions prototype parameter\n" \
-                 f"{parameters}\n" \
+                 f"Depending on the function name : {function_name}, " \
+                 f"and asked parameter : {my_param} you must return the " \
+                 "only corresponding parameter in the user prompt" \
+                 "Here is the user prompt \n" \
+                 f"{usr_prompt}" \
                  "<|im_end|>"
-                # "Here is the function description \n" \
-                # f"{description}" \
-
     assistant_prompt = "<|im_start|>assistant\n" \
-                       f"{parameters}:"
+                       f"parameter {my_param}:"
     prompt = pre_prompt + usr_prompt + assistant_prompt
-    my_ai = Small_LLM_Model()
-
     encoder_prompt = my_ai.encode(prompt)[0].tolist()
     copy_prompt = []
-    while "</think>" not in my_ai.decode(copy_prompt):
+
+    i = 0
+    while "</think>" not in my_ai.decode(copy_prompt) and i < 30:
+        print("test args")
         logits = my_ai.get_logits_from_input_ids(encoder_prompt)
         next_token_id = logits.index(max(logits))
         encoder_prompt.append(next_token_id)
         copy_prompt.append(next_token_id)
-    full_text = my_ai.decode(copy_prompt)
-    return (full_text)
+        i += 1
+    print("\n ===== \n Trouver un argument \n ===== \n")
+    if i == 30:
+        print("\n ===== \n Atteint le max \n ===== \n")
+    arg_name = my_ai.decode(copy_prompt)
+    # carreful if AI cant found result
+    return (arg_name.split("\n")[0])
 
 
 def main():
+    my_ai = Small_LLM_Model()
     try:
         data = parsing()
     except Exception as e:
         print(f"Caught Error: {e}")
         return
-    # usr_prompt = "<|im_start|> what is the sum of 12 and 16 \n \n<|im_end|>"
+    # usr_prompt = "<|im_start|> i want you to add 12 and 16 \n \n<|im_end|>"
     usr_prompt =  "<|im_start|> Substitute the word 'cat' with 'dog' in 'The cat sat on the mat with another cat' <|im_end|>"
-    name = get_function_name(data, usr_prompt)
+    name = get_function_name(my_ai, data, usr_prompt)
     i = 0
     for func in data:
         if (func.name == name.strip(" ")):
             break
         i += 1
-    json_name = "function_name :" + name
-    full = ""
-    # print("keys == ", data[i].parameters.keys())
-    # print()
-    # print("values == ", data[i].parameters.values())
-    for elt in data[i].parameters.keys():
-        full += get_function_args(
-                             elt,
-                             name,
-                             data[i].description,
-                             usr_prompt
-                             )
-    print(json_name)
-    rslt = [x.strip("") for x in full.split("</think>")]
-
-    print(rslt)
+    args_lst = []
+    for param in data[i].parameters:
+        args_lst.append(get_function_args(my_ai, name, param, usr_prompt))
+    print(name)
+    print(args_lst)
 
 
 if __name__ == "__main__":
