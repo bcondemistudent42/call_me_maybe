@@ -19,12 +19,25 @@ class FUNCTION(BaseModel):
     returns: RETURNS
 
 
-def parsing():
+class PROMPT(BaseModel):
+    prompt: Annotated[str, Field(min_length=2, max_length=100)]
+
+
+def parsing_function():
     data = []
     with open("functions_definition.json", "r") as f:
         temp = json.load(f)
     for ft in temp:
         data.append(FUNCTION(**ft))
+    return data
+
+
+def parsing_prompt():
+    data = []
+    with open("function_calling_tests.json", "r") as f:
+        temp = json.load(f)
+    for prompt in temp:
+        data.append(PROMPT(**prompt))
     return data
 
 
@@ -44,7 +57,6 @@ def get_function_name(my_ai, data, usr_prompt):
     copy_prompt = []
 
     while "</think>" not in my_ai.decode(copy_prompt):
-        print("test function_name")
         logits = my_ai.get_logits_from_input_ids(encoder_prompt)
         next_token_id = logits.index(max(logits))
         encoder_prompt.append(next_token_id)
@@ -69,13 +81,11 @@ def get_function_args(my_ai, function_name, my_param, usr_prompt):
 
     i = 0
     while "</think>" not in my_ai.decode(copy_prompt) and i < 60:
-        print("finding args")
         logits = my_ai.get_logits_from_input_ids(encoder_prompt)
         next_token_id = logits.index(max(logits))
         encoder_prompt.append(next_token_id)
         copy_prompt.append(next_token_id)
         i += 1
-    print("\n ===== \n Found an argument \n ===== \n")
     if i == 60:
         print("\n ===== \n Atteint le max \n ===== \n")
     arg_name = my_ai.decode(copy_prompt)
@@ -83,21 +93,11 @@ def get_function_args(my_ai, function_name, my_param, usr_prompt):
     return (arg_name)
 
 
-def main():
-    my_ai = Small_LLM_Model()
-    try:
-        data = parsing()
-    except Exception as e:
-        print(f"Caught Error: {e}")
-        return
-
-    # usr_prompt = "<|im_start|>\nWhat is the sum of 2 and 3? \n <|im_end|>"
-    # usr_prompt = "<|im_start|> \nWhat is the sum of 265 and 345? \n <|im_end|>"
-    usr_prompt = "<|im_start|> \n  Replace all numbers in \"Hello 34 I'm 233 years old\" with NUMBERS' \n <|im_end|>"
-    
-    name = get_function_name(my_ai, data, usr_prompt)
+def call_ai(my_ai, base_prompt, data_function):
+    usr_prompt = f"<|im_start|> \n {base_prompt} \n <|im_end|>"
+    name = get_function_name(my_ai, data_function, usr_prompt)
     i = 0
-    for func in data:
+    for func in data_function:
         if (func.name == name.strip(" ")):
             break
         i += 1
@@ -105,17 +105,29 @@ def main():
     args_lst.append(get_function_args(
                     my_ai,
                     name,
-                    str(data[i].parameters.keys()).strip("dict_keys").strip("()").strip("[]"),
+                    str(data_function[i].parameters.keys()).strip("dict_keys").strip("()").strip("[]"),
                     usr_prompt
                     ))
     print(name)
-    print(args_lst)
+    print("args == ", args_lst, "\n")
+    print()
+    print()
+
+
+def main():
+    my_ai = Small_LLM_Model()
+    try:
+        data_function = parsing_function()
+        data_prompt = parsing_prompt()
+    except Exception as e:
+        print(f"Caught Error: {e}")
+        return
+
+    clean_prompt = [str(x).strip("prompt=").strip("'") for x in data_prompt]
+    for each_prompt in clean_prompt:
+        print("\n ==== \n", "Prompt == ", each_prompt, "\n ====")
+        call_ai(my_ai, each_prompt, data_function)
 
 
 if __name__ == "__main__":
     main()
-
-# Issue function : fn_greet
-
-
-# not working Replace all numbers in \"Hello 34 I'm 233 years old\" with NUMBERS
