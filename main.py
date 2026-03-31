@@ -68,13 +68,13 @@ def get_function_name(my_ai, data, usr_prompt):
 
 def get_function_args(my_ai, function_name, my_param, usr_prompt):
     pre_prompt = "<|im_start|>system\n" \
-                 f"function name : {function_name}\n" \
-                 f"parameter : {my_param}\n" \
-                 f"prompt : {usr_prompt}\n" \
-                 "Extract correct parameters from input \n" \
+                 f"function name : \"{function_name}\"\n" \
+                 f"parameter : \"{my_param}\"\n" \
+                 f"prompt : \"{usr_prompt}\"\n" \
+                 "Extract correct parameters from input\n" \
                  "<|im_end|>"
     assistant_prompt = "<|im_start|>assistant\n" \
-                       f"<think> parameters {my_param}:"
+                       f"<think> extracted parameters {my_param}:"
     prompt = pre_prompt + usr_prompt + assistant_prompt
     encoder_prompt = my_ai.encode(prompt)[0].tolist()
     copy_prompt = []
@@ -131,3 +131,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# to do, if more than 1 args then call ai with each arg" and the ai will
+# finish the answer on its own
