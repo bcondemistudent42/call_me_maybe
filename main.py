@@ -31,7 +31,8 @@ def parsing():
 def get_function_name(my_ai, data, usr_prompt):
     pre_prompt = "<|im_start|>system\n" \
                  "I give you acess to some function choose the correct one\n" \
-                 "return only the function name that you have to use then finish your answer\n" \
+                 "return only the function name that you have to use " \
+                 "then finish your answer\n" \
                  "the list of function:\n" \
                  f"{data} \n"\
                  "<|im_end|>" \
@@ -58,10 +59,10 @@ def get_function_args(my_ai, function_name, my_param, usr_prompt):
                  f"function name : {function_name}\n" \
                  f"parameter : {my_param}\n" \
                  f"prompt : {usr_prompt}\n" \
-                 "Extract parameter from input" \
+                 "Extract correct parameters from input \n" \
                  "<|im_end|>"
     assistant_prompt = "<|im_start|>assistant\n" \
-                       f"parameter {my_param}:"
+                       f"<think> parameters {my_param}:"
     prompt = pre_prompt + usr_prompt + assistant_prompt
     encoder_prompt = my_ai.encode(prompt)[0].tolist()
     copy_prompt = []
@@ -90,13 +91,10 @@ def main():
         print(f"Caught Error: {e}")
         return
 
-    # usr_prompt = "<|im_start|> what is the sqrt of 42 \n <|im_end|>"
-    # usr_prompt = "<|im_start|> i want you to add 12 and 16 \n<|im_end|>" 
-    # usr_prompt = "<|im_start|> greets bcondemi \n <|im_end|>"
-    usr_prompt =  "<|im_start|> Substitute the word 'cat' with 'dog' in 'The cat sat on the mat with another cat' <|im_end|>"
-
-    # issues
-    # usr_prompt = "<|im_start|> reverse the string 'Hello there' \n <|im_end|>"
+    # usr_prompt = "<|im_start|>\nWhat is the sum of 2 and 3? \n <|im_end|>"
+    # usr_prompt = "<|im_start|> \nWhat is the sum of 265 and 345? \n <|im_end|>"
+    usr_prompt = "<|im_start|> \n  Replace all numbers in \"Hello 34 I'm 233 years old\" with NUMBERS' \n <|im_end|>"
+    
     name = get_function_name(my_ai, data, usr_prompt)
     i = 0
     for func in data:
@@ -104,12 +102,12 @@ def main():
             break
         i += 1
     args_lst = []
-    # for param in data[i].parameters:
     args_lst.append(get_function_args(
                     my_ai,
                     name,
-                    str(data[i].parameters).strip("{"),
-                    usr_prompt))
+                    str(data[i].parameters.keys()).strip("dict_keys").strip("()").strip("[]"),
+                    usr_prompt
+                    ))
     print(name)
     print(args_lst)
 
@@ -118,3 +116,6 @@ if __name__ == "__main__":
     main()
 
 # Issue function : fn_greet
+
+
+# not working Replace all numbers in \"Hello 34 I'm 233 years old\" with NUMBERS
