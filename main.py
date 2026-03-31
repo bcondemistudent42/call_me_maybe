@@ -71,7 +71,7 @@ def get_function_args(my_ai, function_name, my_param, usr_prompt):
                  f"function name : \"{function_name}\"\n" \
                  f"parameter : \"{my_param}\"\n" \
                  f"prompt : \"{usr_prompt}\"\n" \
-                 "Extract correct parameters from input\n" \
+                 "Extract correct parameters from prompt\n" \
                  "<|im_end|>"
     assistant_prompt = "<|im_start|>assistant\n" \
                        f"<think> extracted parameters {my_param}:"
@@ -105,13 +105,12 @@ def call_ai(my_ai, base_prompt, data_function):
     args_lst.append(get_function_args(
                     my_ai,
                     name,
-                    str(data_function[i].parameters.keys()).strip("dict_keys").strip("()").strip("[]"),
+                    str(data_function[i].parameters.keys(
+                        )).strip("dict_keys").strip("()").strip("[]"),
                     usr_prompt
                     ))
     print(name)
     print("args == ", args_lst, "\n")
-    print()
-    print()
 
 
 def main():
