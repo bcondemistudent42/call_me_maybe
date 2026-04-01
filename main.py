@@ -56,7 +56,9 @@ def get_function_name(my_ai, data, usr_prompt):
     encoder_prompt = my_ai.encode(prompt)[0].tolist()
     copy_prompt = []
 
-    while "</think>" not in my_ai.decode(copy_prompt):
+    i = 0
+    while "</think>" not in my_ai.decode(copy_prompt) and i < 450:
+        i += 1
         logits = my_ai.get_logits_from_input_ids(encoder_prompt)
         next_token_id = logits.index(max(logits))
         encoder_prompt.append(next_token_id)
@@ -85,10 +87,12 @@ def get_function_args(my_ai, function_name, my_param, usr_prompt, previous_answe
     encoder_prompt = my_ai.encode(prompt)[0].tolist()
     copy_prompt = []
 
-    while "\n" not in my_ai.decode(copy_prompt):
-        # print(f"\n\n>{my_ai.decode(encoder_prompt)}<\n\n")
+    i = 0
+    while "\n" not in my_ai.decode(copy_prompt) and i < 450:
+        i += 1
         logits = my_ai.get_logits_from_input_ids(encoder_prompt)
         next_token_id = logits.index(max(logits))
+        # print(f"\n\n>{my_ai.decode(encoder_prompt)}<\n\n")
         # print(f"rslt: >{my_ai.decode(next_token_id)}<")
         # print(" ========= \n\n")
         encoder_prompt.append(next_token_id)
@@ -117,13 +121,27 @@ def call_ai(my_ai, base_prompt, data_function):
         elt.strip("''")
     j = 0
     txt = ""
+    temp_final = []
     final = []
     for param in clear_param:
         j += 1
-        rslt = get_function_args(my_ai, name, param.strip(" "), usr_prompt, txt)
-        final.append(rslt)
+        rslt = get_function_args(
+                                 my_ai,
+                                 name,
+                                 param.strip(" "),
+                                 usr_prompt,
+                                 txt
+                                 )
+        temp_final.append(rslt)
         txt += clear_param[j - 1] + ":" + rslt
-    print(final)
+    args_cleaned = [x.strip("\n").strip(" ").strip("''") for x in temp_final]
+    k = 0
+    for elt in (clear_param):
+        final.append((elt.strip("''"), args_cleaned[k].strip("''")))
+        k += 1
+    json_data = dict(final)
+    json_string = json.dumps(json_data)
+    print(json_string)
 
 
 def main():
@@ -137,11 +155,9 @@ def main():
 
     clean_prompt = [str(x).strip("prompt=").strip("'") for x in data_prompt]
     for each_prompt in clean_prompt:
+        print("\n\n Prompt == ", each_prompt, "== \n")
         call_ai(my_ai, each_prompt, data_function)
 
 
 if __name__ == "__main__":
     main()
-
-# to do, if more than 1 args then call ai with each arg" and the ai will
-# finish the answer on its own
