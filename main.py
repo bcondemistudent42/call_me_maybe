@@ -42,16 +42,16 @@ def parsing_prompt():
 
 
 def get_function_name(my_ai, data, usr_prompt):
-    pre_prompt = "<|im_start|>system\n" \
-                 "I give you acess to some function choose the correct one\n" \
-                 "return only the function name that you have to use " \
-                 "then finish your answer\n" \
-                 "the list of function:\n" \
-                 f"{data} \n"\
-                 "<|im_end|>" \
-
-    assistant_prompt = "<|im_start|>assistant\n" \
-                       "function used:"
+    pre_prompt = (
+        "<|im_start|>system\n"
+        "I give you acess to some function choose the correct one\n"
+        "return only the function name that you have to use "
+        "then finish your answer\n"
+        "the list of function:\n"
+        f"{data} \n"
+        "<|im_end|>"
+    )
+    assistant_prompt = "<|im_start|>assistant\n" "function used:"
     prompt = pre_prompt + usr_prompt + assistant_prompt
     encoder_prompt = my_ai.encode(prompt)[0].tolist()
     copy_prompt = []
@@ -63,34 +63,39 @@ def get_function_name(my_ai, data, usr_prompt):
         copy_prompt.append(next_token_id)
     ft_name = my_ai.decode(copy_prompt)
     # carreful if AI cant found result
-    return (ft_name.split("\n")[0])
+    return ft_name.split("\n")[0]
 
 
-def get_function_args(my_ai, function_name, my_param, usr_prompt):
-    pre_prompt = "<|im_start|>system\n" \
-                 f"function name : \"{function_name}\"\n" \
-                 f"parameter : \"{my_param}\"\n" \
-                 f"prompt : \"{usr_prompt}\"\n" \
-                 "Extract correct parameters from prompt\n" \
-                 "<|im_end|>"
-    assistant_prompt = "\n<|im_start|>assistant\n" \
-                       f"{my_param}:"
+def get_function_args(my_ai, function_name, my_param, usr_prompt, previous_answer):
+    pre_prompt = (
+        "<|im_start|>system\n"
+        f'function name : "{function_name}"\n'
+        f'parameter : "{my_param}"\n'
+        f'prompt : "{usr_prompt}"\n'
+        "Extract parameters from prompt\n"
+        "<|im_end|>"
+    )
+    if len(previous_answer) != 0:
+        assistant_prompt = "\n<|im_start|>assistant\n" \
+                           f"extracted parameter {previous_answer} {my_param}:"
+    else:
+        assistant_prompt = "\n<|im_start|>assistant\n" \
+                   f"extracted parameter {my_param}:"
     prompt = pre_prompt + assistant_prompt
     encoder_prompt = my_ai.encode(prompt)[0].tolist()
     copy_prompt = []
 
-    i = 0
-    while "\n" not in my_ai.decode(copy_prompt) and i < 60:
+    while "\n" not in my_ai.decode(copy_prompt):
+        # print(f"\n\n>{my_ai.decode(encoder_prompt)}<\n\n")
         logits = my_ai.get_logits_from_input_ids(encoder_prompt)
         next_token_id = logits.index(max(logits))
+        # print(f"rslt: >{my_ai.decode(next_token_id)}<")
+        # print(" ========= \n\n")
         encoder_prompt.append(next_token_id)
         copy_prompt.append(next_token_id)
-        i += 1
-    if i == 60:
-        print("\n ===== \n Atteint le max \n ===== \n")
-    arg_name = my_ai.decode(copy_prompt)
+    arg = my_ai.decode(copy_prompt)
     # carreful if AI cant found result
-    return (arg_name)
+    return arg
 
 
 def call_ai(my_ai, base_prompt, data_function):
@@ -98,19 +103,27 @@ def call_ai(my_ai, base_prompt, data_function):
     name = get_function_name(my_ai, data_function, usr_prompt)
     i = 0
     for func in data_function:
-        if (func.name == name.strip(" ")):
+        if func.name == name.strip(" "):
             break
         i += 1
-    args_lst = []
-    args_lst.append(get_function_args(
-                    my_ai,
-                    name,
-                    str(data_function[i].parameters.keys(
-                        )).strip("dict_keys").strip("()").strip("[]"),
-                    usr_prompt
-                    ))
-    print(name)
-    print("args == ", args_lst, "\n")
+    clear_param = (
+        str(data_function[i].parameters.keys())
+        .strip("dict_keys")
+        .strip("()")
+        .strip("[]")
+        .split(",")
+    )
+    for elt in clear_param:
+        elt.strip("''")
+    j = 0
+    txt = ""
+    final = []
+    for param in clear_param:
+        j += 1
+        rslt = get_function_args(my_ai, name, param.strip(" "), usr_prompt, txt)
+        final.append(rslt)
+        txt += clear_param[j - 1] + ":" + rslt
+    print(final)
 
 
 def main():
@@ -124,7 +137,6 @@ def main():
 
     clean_prompt = [str(x).strip("prompt=").strip("'") for x in data_prompt]
     for each_prompt in clean_prompt:
-        print("\n ==== \n", "Prompt == ", each_prompt, "\n ====")
         call_ai(my_ai, each_prompt, data_function)
 
 
