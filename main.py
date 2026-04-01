@@ -68,7 +68,7 @@ def get_function_name(my_ai, data, usr_prompt):
     return ft_name.split("\n")[0]
 
 
-def get_function_args(my_ai, function_name, my_param, usr_prompt, previous_answer):
+def get_function_args(my_ai, function_name, my_param, usr_prompt, prev_answer):
     pre_prompt = (
         "<|im_start|>system\n"
         f'function name : "{function_name}"\n'
@@ -77,9 +77,9 @@ def get_function_args(my_ai, function_name, my_param, usr_prompt, previous_answe
         "Extract parameters from prompt\n"
         "<|im_end|>"
     )
-    if len(previous_answer) != 0:
+    if len(prev_answer) != 0:
         assistant_prompt = "\n<|im_start|>assistant\n" \
-                           f"extracted parameter {previous_answer} {my_param}:"
+                           f"extracted parameter {prev_answer} {my_param}:"
     else:
         assistant_prompt = "\n<|im_start|>assistant\n" \
                    f"extracted parameter {my_param}:"
@@ -98,16 +98,15 @@ def get_function_args(my_ai, function_name, my_param, usr_prompt, previous_answe
         encoder_prompt.append(next_token_id)
         copy_prompt.append(next_token_id)
     arg = my_ai.decode(copy_prompt)
-    # carreful if AI cant found result
     return arg
 
 
 def call_ai(my_ai, base_prompt, data_function):
     usr_prompt = f"<|im_start|> \n {base_prompt} \n <|im_end|>"
-    name = get_function_name(my_ai, data_function, usr_prompt)
+    name = get_function_name(my_ai, data_function, usr_prompt).strip(" ")
     i = 0
     for func in data_function:
-        if func.name == name.strip(" "):
+        if func.name == name:
             break
         i += 1
     clear_param = (
@@ -126,22 +125,25 @@ def call_ai(my_ai, base_prompt, data_function):
     for param in clear_param:
         j += 1
         rslt = get_function_args(
-                                 my_ai,
-                                 name,
-                                 param.strip(" "),
-                                 usr_prompt,
-                                 txt
-                                 )
+            my_ai,
+            name,
+            param.strip(" "),
+            usr_prompt,
+            txt
+        )
         temp_final.append(rslt)
         txt += clear_param[j - 1] + ":" + rslt
     args_cleaned = [x.strip("\n").strip(" ").strip("''") for x in temp_final]
     k = 0
     for elt in (clear_param):
-        final.append((elt.strip("''"), args_cleaned[k].strip("''")))
+        final.append((elt.strip(" ").strip("''"),
+                      args_cleaned[k].strip(" ").strip("''")))
         k += 1
-    json_data = dict(final)
-    json_string = json.dumps(json_data)
-    print(json_string)
+    big_json_data = {}
+    little_json_data = dict(final)
+    big_json_data[f"{name}"] = little_json_data
+    final_json = json.dumps(big_json_data)
+    print(final_json)
 
 
 def main():
