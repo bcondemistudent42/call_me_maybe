@@ -5,7 +5,8 @@ description = "Ai that returns function and args"
 requires-python = ">=3.10"
 dependencies = [
     "pydantic>=2.12.5",
-    "llm_sdk"
+    "llm_sdk",
+    "accelerate>=1.13.0",
 ]
 
 [tool.uv.workspace]

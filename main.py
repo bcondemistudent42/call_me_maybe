@@ -73,8 +73,8 @@ def get_function_args(my_ai, function_name, my_param, usr_prompt):
                  f"prompt : \"{usr_prompt}\"\n" \
                  "Extract correct parameters from prompt\n" \
                  "<|im_end|>"
-    assistant_prompt = "<|im_start|>assistant\n" \
-                       f"<think> extracted parameters {my_param}:"
+    assistant_prompt = "\n<|im_start|>assistant\n" \
+                       f"<think> extracted {my_param}:"
     prompt = pre_prompt + usr_prompt + assistant_prompt
     encoder_prompt = my_ai.encode(prompt)[0].tolist()
     copy_prompt = []
