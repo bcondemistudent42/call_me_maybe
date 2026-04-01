@@ -74,13 +74,13 @@ def get_function_args(my_ai, function_name, my_param, usr_prompt):
                  "Extract correct parameters from prompt\n" \
                  "<|im_end|>"
     assistant_prompt = "\n<|im_start|>assistant\n" \
-                       f"<think> extracted {my_param}:"
-    prompt = pre_prompt + usr_prompt + assistant_prompt
+                       f"{my_param}:"
+    prompt = pre_prompt + assistant_prompt
     encoder_prompt = my_ai.encode(prompt)[0].tolist()
     copy_prompt = []
 
     i = 0
-    while "</think>" not in my_ai.decode(copy_prompt) and i < 60:
+    while "\n" not in my_ai.decode(copy_prompt) and i < 60:
         logits = my_ai.get_logits_from_input_ids(encoder_prompt)
         next_token_id = logits.index(max(logits))
         encoder_prompt.append(next_token_id)
