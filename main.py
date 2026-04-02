@@ -25,7 +25,7 @@ class PROMPT(BaseModel):
 
 def parsing_function():
     data = []
-    with open("functions_definition.json", "r") as f:
+    with open("data/input/functions_definition.json", "r") as f:
         temp = json.load(f)
     for ft in temp:
         data.append(FUNCTION(**ft))
@@ -34,7 +34,7 @@ def parsing_function():
 
 def parsing_prompt():
     data = []
-    with open("function_calling_tests.json", "r") as f:
+    with open("data/input/function_calling_tests.json", "r") as f:
         temp = json.load(f)
     for prompt in temp:
         data.append(PROMPT(**prompt))
@@ -172,7 +172,8 @@ def main():
     for each_prompt in clean_prompt:
         output = call_ai(my_ai, each_prompt, data_function)
         output_list.append(json.dumps(output))
-    print(output_list)
+    with open("output", "w") as f:
+        f.write(str(output_list))
 
 
 if __name__ == "__main__":
