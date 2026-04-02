@@ -152,7 +152,7 @@ def call_ai(my_ai, base_prompt, data_function):
         except ValueError:
             pass
     big_dict_data = {}
-    big_dict_data["prompt"] = base_prompt
+    big_dict_data["prompt"] = base_prompt.strip(' "\'')
     big_dict_data["name"] = name
     big_dict_data["parameters"] = parsed_param
     return big_dict_data
