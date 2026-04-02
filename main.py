@@ -57,7 +57,7 @@ def get_function_name(my_ai, data, usr_prompt):
     copy_prompt = []
 
     i = 0
-    while "</think>" not in my_ai.decode(copy_prompt) and i < 450:
+    while "</think>" not in my_ai.decode(copy_prompt) and i < 350:
         i += 1
         logits = my_ai.get_logits_from_input_ids(encoder_prompt)
         next_token_id = logits.index(max(logits))
