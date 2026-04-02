@@ -1,15 +1,15 @@
 from llm_sdk import Small_LLM_Model
 from pydantic import BaseModel, Field
-from typing import Annotated, Literal, Dict
+from typing import Annotated, Dict
 import json
 
 
 class RETURNS(BaseModel):
-    type: Literal["number", "string"]
+    type: str
 
 
 class PARAMETERS(BaseModel):
-    type: Literal["number", "string"]
+    type: str
 
 
 class FUNCTION(BaseModel):
@@ -116,12 +116,14 @@ def call_ai(my_ai, base_prompt, data_function):
         .strip("[]")
         .split(",")
     )
+    param_type = str(data_function[i].parameters.values(
+                     )).strip("dict_values(")
     for elt in clear_param:
         elt.strip("''")
     j = 0
     txt = ""
-    temp_final = []
-    final = []
+    temp_param = []
+    parsed_param = []
     for param in clear_param:
         j += 1
         rslt = get_function_args(
@@ -131,19 +133,29 @@ def call_ai(my_ai, base_prompt, data_function):
             usr_prompt,
             txt
         )
-        temp_final.append(rslt)
+        temp_param.append(rslt)
         txt += clear_param[j - 1] + ":" + rslt
-    args_cleaned = [x.strip("\n").strip(" ").strip("''") for x in temp_final]
+    args_cleaned = [x.strip("\n").strip(" ").strip("''") for x in temp_param]
     k = 0
     for elt in (clear_param):
-        final.append((elt.strip(" ").strip("''"),
-                      args_cleaned[k].strip(" ").strip("''")))
+        parsed_param.append((elt.strip(" ").strip("''"),
+                            args_cleaned[k].strip(" ").strip("''")))
         k += 1
-    big_json_data = {}
-    little_json_data = dict(final)
-    big_json_data[f"{name}"] = little_json_data
-    final_json = json.dumps(big_json_data)
-    print(final_json)
+    parsed_param = dict(parsed_param)
+    for key, elt in parsed_param.items():
+        parsed_param[key] = elt.strip(' "\'')
+        try:
+            if "number" in param_type:
+                parsed_param[key] = float(elt)
+            elif "integer" in param_type:
+                parsed_param[key] = int(elt)
+        except ValueError:
+            pass
+    big_dict_data = {}
+    big_dict_data["prompt"] = base_prompt
+    big_dict_data["name"] = name
+    big_dict_data["parameters"] = parsed_param
+    return big_dict_data
 
 
 def main():
@@ -155,10 +167,12 @@ def main():
         print(f"Caught Error: {e}")
         return
 
+    output_list = []
     clean_prompt = [str(x).strip("prompt=").strip("'") for x in data_prompt]
     for each_prompt in clean_prompt:
-        print("\n\n Prompt == ", each_prompt, "== \n")
-        call_ai(my_ai, each_prompt, data_function)
+        output = call_ai(my_ai, each_prompt, data_function)
+        output_list.append(json.dumps(output))
+    print(output_list)
 
 
 if __name__ == "__main__":
