@@ -171,9 +171,10 @@ def main():
     clean_prompt = [str(x).strip("prompt=").strip("'") for x in data_prompt]
     for each_prompt in clean_prompt:
         output = call_ai(my_ai, each_prompt, data_function)
-        output_list.append(json.dumps(output))
+        output_list.append(output)
+        # output_list.append(json.dumps(output, indent=4))
     with open("output", "w") as f:
-        f.write(str(output_list))
+        json.dump(output_list, f, indent=4)
 
 
 if __name__ == "__main__":
