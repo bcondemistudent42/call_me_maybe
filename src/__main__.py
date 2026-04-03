@@ -178,6 +178,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-    # handle case when cant cast the element into int

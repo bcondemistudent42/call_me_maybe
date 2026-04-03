@@ -1,6 +1,6 @@
 PYTHON = uv run python3
 MAIN = main.py
-SRC = .
+SRC = src
 install: .venv/uv.lock
 
 .venv/uv.lock: pyproject.toml
@@ -15,12 +15,15 @@ debug: install
 
 run: install
 	@echo "Running $(MAIN)"
-	$(PYTHON) $(MAIN)
+	$(PYTHON) -m $(SRC)
 
-# lint: install to finish
-# 	@echo "Lint mode:"
-# 	uv run flake8 $(SRC) --exclude=.venv --exclude=llm_sdk
-# 	uv run mypy $(SRC)
+lint:
+	uv run flake8 $(SRC) --exclude=.venv,llm_sdk
+	uv run mypy $(SRC) --warn-return-any \
+		--warn-unused-ignores \
+		--ignore-missing-imports \
+		--disallow-untyped-defs \
+		--check-untyped-defs
 
 clean:
 	@echo "Cleaning everything"
