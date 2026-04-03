@@ -64,7 +64,6 @@ def get_function_name(my_ai, data, usr_prompt):
         encoder_prompt.append(next_token_id)
         copy_prompt.append(next_token_id)
     ft_name = my_ai.decode(copy_prompt)
-    # carreful if AI cant found result
     return ft_name.split("\n")[0]
 
 
@@ -150,6 +149,7 @@ def call_ai(my_ai, base_prompt, data_function):
             elif "integer" in param_type:
                 parsed_param[key] = int(elt)
         except ValueError:
+            parsed_param[key] = 1
             pass
     big_dict_data = {}
     big_dict_data["prompt"] = base_prompt.strip(' "\'')
@@ -172,10 +172,12 @@ def main():
     for each_prompt in clean_prompt:
         output = call_ai(my_ai, each_prompt, data_function)
         output_list.append(output)
-        # output_list.append(json.dumps(output, indent=4))
     with open("output", "w") as f:
         json.dump(output_list, f, indent=4)
 
 
 if __name__ == "__main__":
     main()
+
+
+    # handle case when cant cast the element into int

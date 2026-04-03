@@ -25,6 +25,7 @@ run: install
 clean:
 	@echo "Cleaning everything"
 	rm -rf *_pyc_*
+	rm -rf output
 	rm -rf .mypy_cache
 	rm -rf .venv
 	rm -rf llm_sdk/*pyc*
