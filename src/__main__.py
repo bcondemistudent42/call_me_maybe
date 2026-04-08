@@ -1,7 +1,8 @@
+import json
+from typing import Annotated, Any, Dict, List
+
 from llm_sdk import Small_LLM_Model
 from pydantic import BaseModel, Field, ValidationError
-from typing import Annotated, Dict
-import json
 
 
 class RETURNS(BaseModel):
@@ -23,25 +24,29 @@ class PROMPT(BaseModel):
     prompt: Annotated[str, Field(min_length=2, max_length=100)]
 
 
-def parsing_function():
-    data = []
+def parsing_function() -> List[FUNCTION]:
+    data: List[FUNCTION] = []
     with open("data/input/functions_definition.json", "r") as f:
-        temp = json.load(f)
+        temp: List[Dict[str, Any]] = json.load(f)
     for ft in temp:
         data.append(FUNCTION(**ft))
     return data
 
 
-def parsing_prompt():
-    data = []
+def parsing_prompt() -> List[PROMPT]:
+    data: List[PROMPT] = []
     with open("data/input/function_calling_tests.json", "r") as f:
-        temp = json.load(f)
+        temp: List[Dict[str, Any]] = json.load(f)
     for prompt in temp:
         data.append(PROMPT(**prompt))
     return data
 
 
-def get_function_name(my_ai, data, usr_prompt):
+def get_function_name(
+    my_ai: Small_LLM_Model,
+    data: List[FUNCTION],
+    usr_prompt: str
+) -> str:
     pre_prompt = (
         "<|im_start|>system\n"
         "I give you acess to some function choose the correct one\n"
@@ -54,7 +59,7 @@ def get_function_name(my_ai, data, usr_prompt):
     assistant_prompt = "<|im_start|>assistant\n" "function used:"
     prompt = pre_prompt + usr_prompt + assistant_prompt
     encoder_prompt = my_ai.encode(prompt)[0].tolist()
-    copy_prompt = []
+    copy_prompt: list[Any] = []
 
     i = 0
     while "</think>" not in my_ai.decode(copy_prompt) and i < 350:
@@ -67,7 +72,13 @@ def get_function_name(my_ai, data, usr_prompt):
     return ft_name.split("\n")[0]
 
 
-def get_function_args(my_ai, function_name, my_param, usr_prompt, prev_answer):
+def get_function_args(
+    my_ai: Small_LLM_Model,
+    function_name: str,
+    my_param: str,
+    usr_prompt: str,
+    prev_answer: str,
+) -> str:
     pre_prompt = (
         "<|im_start|>system\n"
         f'function name : "{function_name}"\n'
@@ -84,7 +95,7 @@ def get_function_args(my_ai, function_name, my_param, usr_prompt, prev_answer):
                    f"extracted parameter {my_param}:"
     prompt = pre_prompt + assistant_prompt
     encoder_prompt = my_ai.encode(prompt)[0].tolist()
-    copy_prompt = []
+    copy_prompt: list[Any] = []
 
     i = 0
     while "\n" not in my_ai.decode(copy_prompt) and i < 450:
@@ -97,29 +108,33 @@ def get_function_args(my_ai, function_name, my_param, usr_prompt, prev_answer):
     return arg
 
 
-def call_ai(my_ai, base_prompt, data_function):
+def call_ai(
+            my_ai: Small_LLM_Model,
+            base_prompt: str,
+            data_function: List[FUNCTION]
+) -> Dict[str, Any]:
     usr_prompt = f"<|im_start|> \n {base_prompt} \n <|im_end|>"
     name = get_function_name(my_ai, data_function, usr_prompt).strip(" ")
-    i = 0
+    i: int = 0
     for func in data_function:
         if func.name == name:
             break
         i += 1
-    clear_param = (
+    clear_param: List[str] = (
         str(data_function[i].parameters.keys())
         .strip("dict_keys")
         .strip("()")
         .strip("[]")
         .split(",")
     )
-    param_type = str(data_function[i].parameters.values(
+    param_type: str = str(data_function[i].parameters.values(
                      )).strip("dict_values(")
     for elt in clear_param:
         elt.strip("''")
-    j = 0
-    txt = ""
-    temp_param = []
-    parsed_param = []
+    j: int = 0
+    txt: str = ""
+    temp_param: List[str] = []
+    parsed_param: Any = []
     for param in clear_param:
         j += 1
         rslt = get_function_args(
@@ -131,8 +146,9 @@ def call_ai(my_ai, base_prompt, data_function):
         )
         temp_param.append(rslt)
         txt += clear_param[j - 1] + ":" + rslt
-    args_cleaned = [x.strip("\n").strip(" ").strip("''") for x in temp_param]
-    k = 0
+    args_cleaned: List[str] = [x.strip("\n").strip(" ").strip("''")
+                               for x in temp_param]
+    k: int = 0
     for elt in (clear_param):
         parsed_param.append((elt.strip(" ").strip("''"),
                             args_cleaned[k].strip(" ").strip("''")))
@@ -148,26 +164,27 @@ def call_ai(my_ai, base_prompt, data_function):
         except ValueError:
             parsed_param[key] = 1
             pass
-    big_dict_data = {}
+    big_dict_data: Dict[str, Any] = {}
     big_dict_data["prompt"] = base_prompt.strip(' "\'')
     big_dict_data["name"] = name
     big_dict_data["parameters"] = parsed_param
     return big_dict_data
 
 
-def main():
+def main() -> None:
     try:
-        data_function = parsing_function()
-        data_prompt = parsing_prompt()
+        data_function: List[FUNCTION] = parsing_function()
+        data_prompt: List[PROMPT] = parsing_prompt()
     except ValidationError as e:
         print(f"Caught Error: {e.errors()[0]['msg']}")
         return
 
-    my_ai = Small_LLM_Model()
-    output_list = []
-    clean_prompt = [str(x).strip("prompt=").strip("'") for x in data_prompt]
+    my_ai: Small_LLM_Model = Small_LLM_Model()
+    output_list: List[Dict[str, Any]] = []
+    clean_prompt: List[str] = [str(x).strip("prompt=").strip("'")
+                               for x in data_prompt]
     for each_prompt in clean_prompt:
-        output = call_ai(my_ai, each_prompt, data_function)
+        output: Dict[str, Any] = call_ai(my_ai, each_prompt, data_function)
         output_list.append(output)
     with open("data/output/output.json", "w") as f:
         json.dump(output_list, f, indent=4)

@@ -53,7 +53,7 @@ class Small_LLM_Model:
         self._dtype = dtype
 
         # --- load tokenizer & model -------------------------------------------------
-        self._tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(
+        self._tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(  # type: ignore 
             model_name, trust_remote_code=trust_remote_code
         )
         if self._tokenizer.pad_token_id is None:
@@ -66,7 +66,7 @@ class Small_LLM_Model:
             device_map="auto" if self._device == "cuda" else None,
             trust_remote_code=trust_remote_code,
         )
-        self._model.to(self._device)
+        self._model.to(self._device)  # type: ignore
         self._model.eval()
 
         # switch to inference-only mode
@@ -84,7 +84,7 @@ class Small_LLM_Model:
         """Inverse of :py:meth:`encode`. Removes special tokens."""
         if isinstance(ids, torch.Tensor):
             ids = ids.tolist()
-        return self._tokenizer.decode(ids, skip_special_tokens=True)
+        return self._tokenizer.decode(ids, skip_special_tokens=True)  # type: ignore
 
 
     def get_logits_from_input_ids(self, input_ids: list[int]) -> list[float]:
