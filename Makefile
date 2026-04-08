@@ -34,7 +34,7 @@ clean:
 	rm -rf llm_sdk/*pyc*
 	rm -rf uv.lock
 	rm -rf llm_sdk/uv.lock
-	uv clean
 
 fclean: clean
 	rm -rf .venv
+	uv clean

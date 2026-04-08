@@ -1,6 +1,6 @@
 from llm_sdk import Small_LLM_Model
 from typing import Any, List, Dict
-from src.parsing import Function
+from src.parser import Function
 
 
 def get_function_name(

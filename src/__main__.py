@@ -1,7 +1,8 @@
 import json
 
-from src.parsing import Function, Prompt, parsing_function, parsing_prompt
+from src.parser import Function, Prompt, parsing_function, parsing_prompt
 from src.extractor import call_ai
+
 from pydantic import ValidationError
 from typing import Any, Dict, List
 from llm_sdk import Small_LLM_Model

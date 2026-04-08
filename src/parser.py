@@ -5,19 +5,16 @@ from typing import Annotated, Any, Dict, List
 
 class Returns(BaseModel):
     """Schema for a function return type definition."""
-
     type: Annotated[str, Field(min_length=1, max_length=35)]
 
 
 class Parameters(BaseModel):
     """Schema for a single function parameter definition."""
-
     type: str
 
 
 class Function(BaseModel):
     """Schema describing one callable function in the catalog."""
-
     name: Annotated[str, Field(pattern=r"^fn", min_length=4, max_length=35)]
     description: str
     parameters: Dict[str, Parameters]
@@ -26,7 +23,6 @@ class Function(BaseModel):
 
 class Prompt(BaseModel):
     """Schema for one user prompt entry loaded from input."""
-
     prompt: Annotated[str, Field(min_length=2, max_length=100)]
 
 
