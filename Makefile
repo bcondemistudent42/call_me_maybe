@@ -30,8 +30,11 @@ clean:
 	rm -rf *_pyc_*
 	rm -rf output
 	rm -rf .mypy_cache
-	rm -rf .venv
+	rm -rf src/__pycache__
 	rm -rf llm_sdk/*pyc*
 	rm -rf uv.lock
 	rm -rf llm_sdk/uv.lock
 	uv clean
+
+fclean: clean
+	rm -rf .venv
