@@ -1,11 +1,11 @@
 from llm_sdk import Small_LLM_Model
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 from typing import Annotated, Dict
 import json
 
 
 class RETURNS(BaseModel):
-    type: str
+    type: Annotated[str, Field(min_length=1, max_length=35)]
 
 
 class PARAMETERS(BaseModel):
@@ -91,9 +91,6 @@ def get_function_args(my_ai, function_name, my_param, usr_prompt, prev_answer):
         i += 1
         logits = my_ai.get_logits_from_input_ids(encoder_prompt)
         next_token_id = logits.index(max(logits))
-        # print(f"\n\n>{my_ai.decode(encoder_prompt)}<\n\n")
-        # print(f"rslt: >{my_ai.decode(next_token_id)}<")
-        # print(" ========= \n\n")
         encoder_prompt.append(next_token_id)
         copy_prompt.append(next_token_id)
     arg = my_ai.decode(copy_prompt)
@@ -159,20 +156,20 @@ def call_ai(my_ai, base_prompt, data_function):
 
 
 def main():
-    my_ai = Small_LLM_Model()
     try:
         data_function = parsing_function()
         data_prompt = parsing_prompt()
-    except Exception as e:
-        print(f"Caught Error: {e}")
+    except ValidationError as e:
+        print(f"Caught Error: {e.errors()[0]['msg']}")
         return
 
+    my_ai = Small_LLM_Model()
     output_list = []
     clean_prompt = [str(x).strip("prompt=").strip("'") for x in data_prompt]
     for each_prompt in clean_prompt:
         output = call_ai(my_ai, each_prompt, data_function)
         output_list.append(output)
-    with open("output", "w") as f:
+    with open("data/output/output.json", "w") as f:
         json.dump(output_list, f, indent=4)
 
 
