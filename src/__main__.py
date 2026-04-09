@@ -1,4 +1,5 @@
 import json
+import os
 
 from src.parser import Function, Prompt, parsing_function, parsing_prompt
 from src.extractor import call_ai
@@ -26,7 +27,11 @@ def main() -> None:
     for each_prompt in clean_prompt:
         output: Dict[str, Any] = call_ai(my_ai, each_prompt, data_function)
         output_list.append(output)
-    with open("data/output/output.json", "w") as f:
+    d = "output"
+    parent_d = "data"
+    path = os.path.join(parent_d, d)
+    os.mkdir(path)
+    with open("data/output/function_calling_results.json", "w") as f:
         json.dump(output_list, f, indent=4)
 
 
