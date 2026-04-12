@@ -3,43 +3,87 @@ from typing import Any, List, Dict
 from src.parser import Function
 
 
+# def get_function_name(
+#     my_ai: Small_LLM_Model, data: List[Function], usr_prompt: str
+# ) -> str:
+#     """Infer the function name to call for a user prompt.
+
+#     Args:
+#         my_ai: LLM wrapper used for token generation.
+#         data: Available function definitions.
+#         usr_prompt: Prompt to evaluate.
+
+#     Returns:
+#         str: Predicted function name.
+#     """
+
+#     pre_prompt = (
+#         "<|im_start|>system\n"
+#         "I give you acess to some function choose the correct one\n"
+#         "return only the function name that you have to use "
+#         "then finish your answer\n"
+#         "the list of function:\n"
+#         f"{data} \n"
+#         "<|im_end|>"
+#     )
+#     assistant_prompt = "<|im_start|>assistant\n" "function used:"
+#     prompt = pre_prompt + usr_prompt + assistant_prompt
+#     encoder_prompt = my_ai.encode(prompt)[0].tolist()
+#     copy_prompt: list[Any] = []
+
+#     name_list = [my_ai.encode(x.name).tolist()[0] for x in data]
+#     print(name_list)
+
+#     i = 0
+#     while "</think>" not in my_ai.decode(copy_prompt) and i < 350:
+#         logits = my_ai.get_logits_from_input_ids(encoder_prompt)
+#         next_token_id = logits.index(max(logits))
+#         encoder_prompt.append(next_token_id)
+#         copy_prompt.append(next_token_id)
+#         i += 1
+#     ft_name = my_ai.decode(copy_prompt)
+#     return ft_name.split("\n")[0]
+
+
 def get_function_name(
     my_ai: Small_LLM_Model, data: List[Function], usr_prompt: str
 ) -> str:
-    """Infer the function name to call for a user prompt.
-
-    Args:
-        my_ai: LLM wrapper used for token generation.
-        data: Available function definitions.
-        usr_prompt: Prompt to evaluate.
-
-    Returns:
-        str: Predicted function name.
-    """
-
+    """Infer the function name using constrained decoding (logit masking)."""
     pre_prompt = (
         "<|im_start|>system\n"
-        "I give you acess to some function choose the correct one\n"
-        "return only the function name that you have to use "
-        "then finish your answer\n"
-        "the list of function:\n"
-        f"{data} \n"
-        "<|im_end|>"
+        "I give you access to some function, choose the correct one. "
+        "Return only the function name.\n"
+        "Functions:\n"
+        f"{[f.name for f in data]} \n"
+        "<|im_end|>\n"
     )
-    assistant_prompt = "<|im_start|>assistant\n" "function used:"
+    assistant_prompt = "<|im_start|>assistant\nfunction used:"
     prompt = pre_prompt + usr_prompt + assistant_prompt
     encoder_prompt = my_ai.encode(prompt)[0].tolist()
-    copy_prompt: list[Any] = []
+    generated_tokens = []
+    function_name = [my_ai.encode(x.name)[0].tolist() for x in data]
+    eof = my_ai.encode("\n")
+    max_steps = 95
 
-    i = 0
-    while "</think>" not in my_ai.decode(copy_prompt) and i < 350:
-        i += 1
+    for _ in range(max_steps):
         logits = my_ai.get_logits_from_input_ids(encoder_prompt)
-        next_token_id = logits.index(max(logits))
+        valid_next_tokens = []
+        for tokens in function_name:
+            if tokens[:len(generated_tokens)] == generated_tokens:
+                if len(tokens) > len(generated_tokens):
+                    valid_next_tokens.append(tokens[len(generated_tokens)])
+                else:
+                    valid_next_tokens.append(eof)
+        masked_logits = [-float('inf')] * len(logits)
+        for token_id in valid_next_tokens:
+            masked_logits[token_id] = logits[token_id]
+        next_token_id = masked_logits.index(max(masked_logits))
+        if next_token_id == eof or not valid_next_tokens:
+            break
         encoder_prompt.append(next_token_id)
-        copy_prompt.append(next_token_id)
-    ft_name = my_ai.decode(copy_prompt)
-    return ft_name.split("\n")[0]
+        generated_tokens.append(next_token_id)
+    ft_name = my_ai.decode(generated_tokens).strip()
+    return ft_name
 
 
 def get_function_args(

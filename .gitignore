@@ -3,3 +3,4 @@
 output.json
 *.lock
 *mypy*
+output

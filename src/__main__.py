@@ -27,11 +27,11 @@ def main() -> None:
     for each_prompt in clean_prompt:
         output: Dict[str, Any] = call_ai(my_ai, each_prompt, data_function)
         output_list.append(output)
-    d = "output"
-    parent_d = "data"
-    path = os.path.join(parent_d, d)
-    os.mkdir(path)
-    with open("data/output/function_calling_results.json", "w") as f:
+
+    output_dir = "data/output"
+    file_path = os.path.join(output_dir, "function_calling_results.json")
+    os.makedirs(output_dir, exist_ok=True)
+    with open(file_path, "w") as f:
         json.dump(output_list, f, indent=4)
 
 
