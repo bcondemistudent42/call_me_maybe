@@ -1,8 +1,8 @@
 import json
 import os
 
-from src.parser import Function, Prompt, parsing_function, parsing_prompt
-from src.extractor import call_ai
+from .parser import Function, Prompt, parsing_function, parsing_prompt
+from .extractor import call_ai
 
 from pydantic import ValidationError
 from typing import Any, Dict, List
