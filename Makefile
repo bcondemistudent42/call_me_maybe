@@ -1,6 +1,10 @@
 PYTHON = uv run python3
 MAIN = main.py
 SRC = src
+GREEN  = \033[1;32m
+RESET  = \033[0m
+BOLD   = \033[1m
+
 install: .venv/uv.lock
 
 .venv/uv.lock: pyproject.toml
@@ -14,8 +18,9 @@ debug: install
 
 
 run: install
-	@echo "Running $(MAIN)"
-	$(PYTHON) -m $(SRC)
+	@echo "Running $(MAIN)..."
+	@$(PYTHON) -m $(SRC) && \
+	printf "$(GREEN)$(BOLD)✔$(RESET) $(GREEN)Programm run successfully.$(RESET)\n"
 
 lint:
 	uv run flake8 $(SRC) --exclude=.venv,llm_sdk

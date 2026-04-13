@@ -32,6 +32,9 @@ def get_function_name(
                     valid_next_tokens.append(tokens[len(generated_tokens)])
                 else:
                     valid_next_tokens.append(eof)
+        print(generated_tokens)
+        print(my_ai.decode(generated_tokens))
+        print()
         masked_logits = [-float('inf')] * len(logits)
         for token_id in valid_next_tokens:
             masked_logits[token_id] = logits[token_id]
