@@ -10,7 +10,8 @@ from typing import Any, Dict, List
 from llm_sdk import Small_LLM_Model
 
 
-def args_parser():
+def args_parser() -> argparse.Namespace:
+    """Parses all the param with ArgParse"""
     parser_param = argparse.ArgumentParser()
     parser_param.add_argument("--functions_definition",
                               default="data/input/functions_definition.json",
@@ -41,7 +42,7 @@ def main() -> None:
     os.system('cls||clear')
     for each_prompt in clean_prompt:
         output: Dict[str, Any] = call_ai(my_ai, each_prompt, data_ft)
-        print(each_prompt)
+        print("Prompt :", each_prompt)
         print(f"Result : {output} \n")
         output_list.append(output)
     output_dir = args.output
