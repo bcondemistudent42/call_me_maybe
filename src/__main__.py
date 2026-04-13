@@ -13,8 +13,7 @@ from llm_sdk import Small_LLM_Model
 def main() -> None:
     """Run the full function-calling pipeline and persist JSON output."""
 
-    parser_param = argparse.ArgumentParser(
-                    prog='__main__.py')
+    parser_param = argparse.ArgumentParser()
     parser_param.add_argument("--functions_definition",
                               default="data/input/functions_definition.json",
                               help="<function_definition_file>")
