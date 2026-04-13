@@ -10,9 +10,7 @@ from typing import Any, Dict, List
 from llm_sdk import Small_LLM_Model
 
 
-def main() -> None:
-    """Run the full function-calling pipeline and persist JSON output."""
-
+def args_parser():
     parser_param = argparse.ArgumentParser()
     parser_param.add_argument("--functions_definition",
                               default="data/input/functions_definition.json",
@@ -23,7 +21,12 @@ def main() -> None:
     parser_param.add_argument("--output",
                               default="data/output",
                               help="<output_file>")
-    args = parser_param.parse_args()
+    return parser_param.parse_args()
+
+
+def main() -> None:
+    """Run the full function-calling pipeline and persist JSON output."""
+    args = args_parser()
     try:
         data_ft: List[Function] = parsing_function(args.functions_definition)
         data_prompt: List[Prompt] = parsing_prompt(args.input)
