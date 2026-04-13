@@ -1,3 +1,5 @@
+import numpy as np
+
 from llm_sdk import Small_LLM_Model
 from typing import Any, List, Dict
 from .parser import Function
@@ -35,14 +37,14 @@ def get_function_name(
         print(generated_tokens)
         print(my_ai.decode(generated_tokens))
         print()
-        masked_logits = [-float('inf')] * len(logits)
+        masked_logits = np.full(len(logits), -np.inf)
         for token_id in valid_next_tokens:
             masked_logits[token_id] = logits[token_id]
-        next_token_id = masked_logits.index(max(masked_logits))
+        next_token_id = np.argmax(masked_logits)
         if next_token_id == eof or not valid_next_tokens:
             break
         encoder_prompt.append(next_token_id)
-        generated_tokens.append(next_token_id)
+        generated_tokens.append(int(next_token_id))
     ft_name = my_ai.decode(generated_tokens).strip()
     return ft_name
 
