@@ -26,7 +26,7 @@ class Prompt(BaseModel):
     prompt: Annotated[str, Field(min_length=2, max_length=100)]
 
 
-def parsing_function() -> List[Function]:
+def parsing_function(function_place: str) -> List[Function]:
     """Load and validate function definitions from JSON input.
 
     Returns:
@@ -34,14 +34,14 @@ def parsing_function() -> List[Function]:
     """
 
     data: List[Function] = []
-    with open("data/input/functions_definition.json", "r") as f:
+    with open(function_place, "r") as f:
         temp: List[Dict[str, Any]] = json.load(f)
     for ft in temp:
         data.append(Function(**ft))
     return data
 
 
-def parsing_prompt() -> List[Prompt]:
+def parsing_prompt(prompt_place: str) -> List[Prompt]:
     """Load and validate prompt entries from JSON input.
 
     Returns:
@@ -49,7 +49,7 @@ def parsing_prompt() -> List[Prompt]:
     """
 
     data: List[Prompt] = []
-    with open("data/input/function_calling_tests.json", "r") as f:
+    with open(prompt_place, "r") as f:
         temp: List[Dict[str, Any]] = json.load(f)
     for prompt in temp:
         data.append(Prompt(**prompt))

@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 
@@ -12,23 +13,33 @@ from llm_sdk import Small_LLM_Model
 def main() -> None:
     """Run the full function-calling pipeline and persist JSON output."""
 
+    parser_param = argparse.ArgumentParser(
+                    prog='__main__.py')
+    parser_param.add_argument("--functions_definition",
+                              default="data/input/functions_definition.json",
+                              help="<function_definition_file>")
+    parser_param.add_argument("--input",
+                              default="data/input/function_calling_tests.json",
+                              help="<input_file>")
+    parser_param.add_argument("--output",
+                              default="data/output",
+                              help="<output_file>")
+    args = parser_param.parse_args()
     try:
-        data_function: List[Function] = parsing_function()
-        data_prompt: List[Prompt] = parsing_prompt()
+        data_ft: List[Function] = parsing_function(args.functions_definition)
+        data_prompt: List[Prompt] = parsing_prompt(args.input)
     except ValidationError as e:
         print(f"Caught Error: {e.errors()[0]['msg']}")
         return
-
     my_ai: Small_LLM_Model = Small_LLM_Model()
     output_list: List[Dict[str, Any]] = []
     clean_prompt: List[str] = [
         str(x).strip("prompt=").strip("'") for x in data_prompt
     ]
     for each_prompt in clean_prompt:
-        output: Dict[str, Any] = call_ai(my_ai, each_prompt, data_function)
+        output: Dict[str, Any] = call_ai(my_ai, each_prompt, data_ft)
         output_list.append(output)
-
-    output_dir = "data/output"
+    output_dir = args.output
     file_path = os.path.join(output_dir, "function_calling_results.json")
     os.makedirs(output_dir, exist_ok=True)
     with open(file_path, "w") as f:
