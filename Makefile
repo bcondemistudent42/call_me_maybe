@@ -20,7 +20,7 @@ debug: install
 run: install
 	@echo "Running $(MAIN)..."
 	@$(PYTHON) -m $(SRC) && \
-	printf "$(GREEN)$(BOLD)✔$(RESET) $(GREEN)Programm run successfully.$(RESET)\n"
+	printf "$(GREEN)$(BOLD)$(RESET)$(GREEN)Execution Finished$(RESET)\n"
 
 lint:
 	uv run flake8 $(SRC) --exclude=.venv,llm_sdk

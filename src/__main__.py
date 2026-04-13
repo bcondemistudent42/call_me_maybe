@@ -32,22 +32,30 @@ def main() -> None:
         data_ft: List[Function] = parsing_function(args.functions_definition)
         data_prompt: List[Prompt] = parsing_prompt(args.input)
     except ValidationError as e:
-        print(f"Caught Error: {e.errors()[0]['msg']}")
+        print(f"Validation Error Occured: {e.errors()[0]['msg']}")
         return
+    except json.JSONDecodeError as e:
+        print(f"JSON ERROR OCCURED : {e}")
+        return
+
     my_ai: Small_LLM_Model = Small_LLM_Model()
     output_list: List[Dict[str, Any]] = []
     clean_prompt: List[str] = [
         str(x).strip("prompt=").strip("'") for x in data_prompt
     ]
+
     os.system('cls||clear')
+
     for each_prompt in clean_prompt:
         output: Dict[str, Any] = call_ai(my_ai, each_prompt, data_ft)
         print("Prompt :", each_prompt)
         print(f"Result : {output} \n")
         output_list.append(output)
+
     output_dir = args.output
     file_path = os.path.join(output_dir, "function_calling_results.json")
     os.makedirs(output_dir, exist_ok=True)
+
     with open(file_path, "w") as f:
         json.dump(output_list, f, indent=4)
 
