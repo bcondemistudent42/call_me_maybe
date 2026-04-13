@@ -35,8 +35,11 @@ def main() -> None:
     clean_prompt: List[str] = [
         str(x).strip("prompt=").strip("'") for x in data_prompt
     ]
+    os.system('cls||clear')
     for each_prompt in clean_prompt:
         output: Dict[str, Any] = call_ai(my_ai, each_prompt, data_ft)
+        print(each_prompt)
+        print(f"Result : {output} \n")
         output_list.append(output)
     output_dir = args.output
     file_path = os.path.join(output_dir, "function_calling_results.json")
