@@ -1,6 +1,5 @@
 .venv
 *pyc*
 output.json
-*.lock
 *mypy*
 output
