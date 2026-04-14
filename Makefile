@@ -1,5 +1,4 @@
 PYTHON = uv run python3
-MAIN = main.py
 SRC = src
 GREEN  = \033[1;32m
 RESET  = \033[0m
@@ -14,11 +13,10 @@ install: .venv/uv.lock
 
 debug: install
 	@echo "Debug mode: "
-	$(PYTHON) -m pdb $(MAIN) $(CONFIG)
-
+	$(PYTHON) -m pdb src/__main__.py
 
 run: install
-	@echo "Running $(MAIN)..."
+	@echo "Running call_me_maybe ..."
 	@$(PYTHON) -m $(SRC) && \
 	printf "$(GREEN)$(BOLD)$(RESET)$(GREEN)Execution Finished$(RESET)\n"
 
