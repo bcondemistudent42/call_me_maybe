@@ -43,3 +43,5 @@ clean:
 fclean: clean
 	rm -rf .venv
 	uv clean
+
+.PHONY: install debug run lint clean fclean
